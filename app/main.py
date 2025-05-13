@@ -1,15 +1,12 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from app.utils.supabase_client import supabase
+from fastapi import FastAPI
+from app.api.routes import backtest, strategies
 
-app = FastAPI()
+app = FastAPI(title="Trading Backend API")
 
-@app.get("/strategies")
-async def get_strategies():
-    try:
-        response = supabase.table("strategies").select("*").execute()
-        if response.error:
-            raise Exception(response.error)
-        return response.data
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# Notice: no extra /strategies here; it will be handled inside strategies.py
+app.include_router(strategies.router, prefix="/strategies", tags=["Strategies"])
+app.include_router(backtest.router, prefix="/backtest", tags=["Backtest"])
+
+@app.get("/")
+async def root():
+    return {"message": "🚀 Trading Backend API is running"}
